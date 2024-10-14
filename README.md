@@ -1,33 +1,77 @@
 ## WELCOME TO THE INSTALLATION PROCESS OF ELK STACK ##
-OS : ubuntu 20.04
-TYPE : ALL-IN-ONE installation.
+
+<h3>OS : ubuntu 20.04</h3>
+<h3>TYPE : ALL-IN-ONE installation</h3>
 
 
-1-  Update your packages b y tapping "apt update" then "apt install gnupg"
-
-2-  Now inport the PGP Key of elasticsearch repository by tapping \
+1-  Update your packages b y tapping 
 ```
-    <code> "wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -"\
+apt update
+apt install gnupg
 ```
-3-  Secure your repos search by tapping "apt-get install apt-transport-https"
+
+2-  Now inport the PGP Key of elasticsearch repository by tapping 
+```
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+```
+3-  Secure your repos search by tapping 
+```
+apt-get install apt-transport-https
+```
 4-  Add the elasticsearch repository to your apt.source file by tapping:
-    "echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list"
-5-  Update and install elasticsearch. for this tape "apt update" then "apt install elasticsearch -y"
+```
+echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list
+```
+5-  Update and install elasticsearch. for this tape 
+```
+apt update
+apt install elasticsearch -y
+```
 6-  Please take note of the authentification password of your elastic built-in superuser. You will see it at the end of the installation 
 7-  Tape these three commands:
-    "systemctl daemon-reload"
-    "systemctl enable elasticsearch.service"
-    "systemctl start elasticsearch.service"
-8-  Test if your elasticsearch is working well by taping "curl http://localhost:9200"
+```
+systemctl daemon-reload
+systemctl enable elasticsearch.service
+systemctl start elasticsearch.service
+```
+8-  Test if your elasticsearch is working well by taping 
+```
+curl http://localhost:9200
+```
 9-  Note that by default your elasticsearch node is only accessible from your localhost, if you want your node to be exposed to all your network, you need to put a non-loopback address 
-    by uncommenting and modifying this line "#network.host: localhost" in the "/etc/elasticsearch/elasticsearch.yml" file.
-10- to genearte the elasticseatch fingerprint go to /etc/elasticsearch/certs/ then type "openssl x509 -fingerprint -sha256 -in http_ca.crt" then remove the "two dots" between every two number (ex : AB:CD:7R =>       ABCD7R)
-11- Now let's proceed with the installation of Kibana. Tape "apt update" then "apt install kibana"
-12- Start kibana service "service kibana start"
+    by uncommenting and modifying this line 
+```    
+"#network.host: localhost" in the "/etc/elasticsearch/elasticsearch.yml" file.
+```
+10- to genearte the elasticseatch fingerprint go to /etc/elasticsearch/certs/ then type 
+```
+openssl x509 -fingerprint -sha256 -in http_ca.crt
+```
+then remove the "two dots" between every two number (ex : AB:CD:7R => ABCD7R) \
+
+11- Now let's proceed with the installation of Kibana. Tape 
+```
+apt update
+apt install kibana
+```
+12- Start kibana service 
+```
+"systemctl start kibana.service
+```
 13- In order to ensure your kibana will join the elk stack, open your browser and tape "http://localhost:5601" . You'll see a text area
-    inviting your to enter an enrollement token.
-14- Tape "./usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana". You'll see a token, copy it and past it in your
-    browser. you will be asked to enter a verification code. Tape in your terminal "./usr/share/kibana/bin/kibana-verification-code". You'll see a six number code, copy it and past it in your browser again.
+    inviting your to enter an enrollement token\
+    
+14- Tape 
+```
+./usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
+```
+You'll see a token, copy it and past it in your browser. you will be asked to enter a verification code. 
+
+15- Tape in your terminal 
+```
+./usr/share/kibana/bin/kibana-verification-code
+```
+You'll see a six number code, copy it and past it in your browser again.\
 15- Please Note that like elasticsearch, by default your kibana node is only accessible from your localhost, if you want your node to be
     exposed to all your network, you need to put a non-loopback address by uncommenting and modifying this line "#server.host: "locahost"" in the "/etc/kibana/kibana.yml" file.
 16- Your kibana is ready, use the password of the elastic built-in superuser and connect.
