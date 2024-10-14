@@ -72,14 +72,26 @@ You'll see a token, copy it and past it in your browser. you will be asked to en
 ./usr/share/kibana/bin/kibana-verification-code
 ```
 You'll see a six number code, copy it and past it in your browser again.\
-15- Please Note that like elasticsearch, by default your kibana node is only accessible from your localhost, if you want your node to be
-    exposed to all your network, you need to put a non-loopback address by uncommenting and modifying this line "#server.host: "locahost"" in the "/etc/kibana/kibana.yml" file.
-16- Your kibana is ready, use the password of the elastic built-in superuser and connect.
-17- Now let's proceed with the installation of Logstash. Tape "apt update" then "apt install logstash"
-18- Tape "service logstash start"
-19- proceed with the configuration file in /etc/logstash/conf.d/* - this is where you put your input|filter|output files.
-20- Here is an example in case you are working with one configuration file.
 
+16- Please Note that like elasticsearch, by default your kibana node is only accessible from your localhost, if you want your node to be
+    exposed to all your network, you need to put a non-loopback address by uncommenting and modifying this line 
+```
+"#server.host: "locahost"" in the "/etc/kibana/kibana.yml" file.
+
+```
+17- Your kibana is ready, use the password of the elastic built-in superuser and connect.\
+18- Now let's proceed with the installation of Logstash. Tape
+```
+apt update
+apt install logstash
+```
+19- Start your logstash service
+```
+systemctl start logstash.service
+```
+20- proceed with the configuration file in /etc/logstash/conf.d/* - this is where you put your input|filter|output files. \
+21- Here is an example in case you are working with one configuration file.
+```
 # #################################################################################################################################
 # Sample Logstash configuration for creating a simple
 # Beats -> Logstash -> Elasticsearch pipeline.
@@ -106,9 +118,35 @@ output {
     }
 }
 # #################################################################################################################################
-
+```
 
 21- Note that you should copy the elasticsearch certificate located in /etc/elasticsearch/certs and named http_ca.crt and paste it in a path and give it access permissions, that way your logstash can communicate with your elasticsearch.
+# #################################################################################################################################
+# Sample Logstash configuration for creating a simple
+# Beats -> Logstash -> Elasticsearch pipeline.
+
+input {
+    beats {
+        port => 5044
+    }
+}
+
+output {
+    stdout { codec => rubydebug }
+    elasticsearch {
+        hosts => ["https://192.168.100.2:9200"]
+        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+        user => "elastic"
+        # SSL enabled
+        ssl => true
+        ssl_certificate_verification => true
+        # Path to your Cluster Certificate .pem downloaded earlier
+        cacert => "/home/elk/http_ca.crt"
+        password => "Gbrx2WKwN7A8NFOzuYe+"
+        action => "create"
+    }
+}
+# #################################################################################################################################
 
 22- to test that your logstash is recieving logs from the beats type "tcpdump -Xni eth0 port 5044" . the interface eth0 may be different in each case.
 23- Make sure the important part in winlogbeat.yml looks like this :
