@@ -1,7 +1,7 @@
 Hello this is the code you be typing 
 
-```
-**apt update 
+```ruby
+apt update 
 apt install gnupg
 apt install net-tools
 ```
