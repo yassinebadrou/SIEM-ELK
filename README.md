@@ -112,7 +112,7 @@ output {
         ssl => true
         ssl_certificate_verification => true
         # Path to your Cluster Certificate .pem downloaded earlier
-        cacert => "/home/elk/http_ca.crt"
+        cacert => "/home/user/http_ca.crt"
         password => "Gbrx2WKwN7A8NFOzuYe+"
         action => "create"
     }
@@ -120,37 +120,19 @@ output {
 # #################################################################################################################################
 ```
 
-21- Note that you should copy the elasticsearch certificate located in /etc/elasticsearch/certs and named http_ca.crt and paste it in a path and give it access permissions, that way your logstash can communicate with your elasticsearch.
-# #################################################################################################################################
-# Sample Logstash configuration for creating a simple
-# Beats -> Logstash -> Elasticsearch pipeline.
+22- Note that you should copy the elasticsearch certificate located in /etc/elasticsearch/certs and named http_ca.crt and paste it in a path and give it access permissions, that way your logstash can communicate with your elasticsearch.
+```
+cp /etc/elasticsearch/certs/http_ca.crt /home/user/.
+```
+you will put this path in the cacert field of the previous step (config file of logstash) \
 
-input {
-    beats {
-        port => 5044
-    }
-}
-
-output {
-    stdout { codec => rubydebug }
-    elasticsearch {
-        hosts => ["https://192.168.100.2:9200"]
-        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
-        user => "elastic"
-        # SSL enabled
-        ssl => true
-        ssl_certificate_verification => true
-        # Path to your Cluster Certificate .pem downloaded earlier
-        cacert => "/home/elk/http_ca.crt"
-        password => "Gbrx2WKwN7A8NFOzuYe+"
-        action => "create"
-    }
-}
-# #################################################################################################################################
-
-22- to test that your logstash is recieving logs from the beats type "tcpdump -Xni eth0 port 5044" . the interface eth0 may be different in each case.
-23- Make sure the important part in winlogbeat.yml looks like this :
-
+23- to test that your logstash is recieving logs from the beats type 
+```
+tcpdump -Xni eth0 port 5044
+```
+the interface eth0 may be different in each case. \
+23- Make sure the important part in winlogbeat.yml or your beat looks like this :
+```
 # #################################################################################################################################
 # ------------------------------ Logstash Output -------------------------------
 output.logstash:
@@ -163,12 +145,8 @@ setup.kibana:
   password: "Gbrx2WKwN7A8NFOzuYe+"
   pipeline: "winlogbeat-%{[agent.version]}-routing"
 # #################################################################################################################################
-
+```
 24- At this stage your need to setup your configuration files for logstash, especialy for filtering.
-
- 
-
-
 
 SYSMON Packet:
 open powershell as an administrator then type "Sysmon64.exe -accepteula -i -n"
