@@ -152,7 +152,9 @@ setup.kibana:
 SYSMON Packet:
 open powershell as an administrator then type "Sysmon64.exe -accepteula -i -n"
 
+```
  Credentials:
     -username : elastic
     -password : Gbrx2WKwN7A8NFOzuYe+
 	-fingerprint : 0527283E2226E57946667418532187A56DD0F41F9B93C7EC59924B440F515EA8
+```
