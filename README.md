@@ -131,6 +131,7 @@ you will put this path in the cacert field of the previous step (config file of 
 tcpdump -Xni eth0 port 5044
 ```
 the interface eth0 may be different in each case. \
+
 23- Make sure the important part in winlogbeat.yml or your beat looks like this :
 ```
 # #################################################################################################################################
