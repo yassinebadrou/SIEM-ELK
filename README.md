@@ -3,7 +3,7 @@ OS : ubuntu 20.04
 TYPE : ALL-IN-ONE installation.
 
 
-1-  Update your packages b y tapping "apt update" then "apt install gnupg"
+1-  Update your packages b y tapping "apt update" then "apt install gnupg"\
 
 2-  Now inport the PGP Key of elasticsearch repository by tapping 
     "wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -"
