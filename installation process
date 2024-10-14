@@ -5,3 +5,5 @@ apt update
 apt install gnupg
 apt install net-tools
 ```
+
+dd
