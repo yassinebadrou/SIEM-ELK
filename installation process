@@ -1,2 +1,4 @@
 Hello this is the code you be typing 
-<sub> apt update </sub>
+'''
+apt update 
+'''
