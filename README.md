@@ -150,7 +150,7 @@ setup.kibana:
 
 this is how you check for elasticsearch indexes
 ```
-curl -k -u "elastic:CD27P-N=8BW+LLEnjiV7" -X GET "https://192.168.159.130:9200/_cat/indices?v"
+curl -k -u "elastic:password" -X GET "https://192.168.159.130:9200/_cat/indices?v"
 ```
 24- At this stage your need to setup your configuration files for logstash, especialy for filtering.
 
