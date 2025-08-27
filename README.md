@@ -20,7 +20,7 @@ apt-get install apt-transport-https
 ```
 4-  Add the elasticsearch repository to your apt.source file by tapping:
 ```
-echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list
+echo "deb https://artifacts.elastic.co/packages/9.x/apt stable main" > /etc/apt/sources.list.d/elastic-9.x.list
 ```
 5-  Update and install elasticsearch. for this tape 
 ```
