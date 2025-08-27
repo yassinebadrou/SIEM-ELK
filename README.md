@@ -7,6 +7,9 @@
 1-  Update your packages b y tapping 
 ```
 apt update
+apt install net-tools
+apt install unzip
+apt install curl
 apt install gnupg
 ```
 
