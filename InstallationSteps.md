@@ -229,3 +229,4 @@ PUT _index_template/winlogbeat-template
   }
 }
 ```
+23- If you need assistance with Logstash pipeline configuration files please refer to this folder <a href="">Logstash Configuration files<\a>
