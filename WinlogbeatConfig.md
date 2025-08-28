@@ -220,14 +220,13 @@ processors:
 
 ```
 6- You will find an OUTPUT SECTION that looks like this
-
-# ------------------------------ Logstash Output -------------------------------
 ```
+# ------------------------------ Logstash Output -------------------------------
 output.logstash:
   # The Logstash hosts
   hosts: ["your-elk-vm:5044"]
 ```
-You should fill in your ELK SIEM address ip in that configuration file.\
+You should replace the "your-elk-vm" by your actual ELK SIEM address ip in that configuration file.\
 7- Open powershell as an administrator.Then type:
 ```
 cd 'C:\Program Files\winlogbeat'
