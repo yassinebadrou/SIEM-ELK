@@ -136,8 +136,16 @@ with this
 path.config: /etc/logstash/conf.d/*.conf
 ```
 This will ensure that you logs will be going through every configuration file located in "/etc/logstash/conf.d" file.\
+\
 20- Until now, your elasticsearch communication very well with your kibana, but we should ensure that our logstash communication perfectly with our elastic search as this schema is like this \
 AGENT >> LOGSTASH >> ELASTICSEARCH >> KIBANA \
+\
+20.1- You need to identify you home user, check it in "/home/" directory. let's go for the example of "michael"\
+Your home directory will be "/home/michael". we need to copy elasticsearch certificate and make it accessible by logstash in order to ensure the communication betweek logstash and elasticsearch. To do so, Type:
+```
+cp /etc/elasticsearch/certs/http_ca.crt /home/michael/
+chmod 777 /home/michael/http_ca.crt
+```
 We will create the configuration files corresponding to the 3 steps of logstash pipeline
 ```
 cd /etc/logstash/conf.d/
@@ -181,52 +189,24 @@ Then paste this:
 output {
     stdout { codec => rubydebug }
     elasticsearch {
-        hosts => ["https://10.10.10.2:9200"]
+        hosts => ["https://your-vm-ip:9200"]
         index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
         user => "elastic"
-        password => "IWI7c_HAC2K3p7hWglAQ"
+        password => "your-superuser-password"
         ssl_enabled => true
         ssl_verification_mode => full
-        ssl_certificate_authorities => ["/home/elk/http_ca.crt"]
+        ssl_certificate_authorities => ["/home/user/http_ca.crt"]
         action => "index"
     }
 }
 ```
+Please note that in this line " ssl_certificate_authorities => ["/home/user/http_ca.crt"]" you should replace "user" by the name of your vm user. for example if your home directory is "/home/michael" The new line should be like this : ssl_certificate_authorities => ["/home/michael/http_ca.crt"] \
 19- Start your logstash service
 ```
 systemctl daemon-reload
 systemctl start logstash.service
 ```
-20- proceed with the configuration file in /etc/logstash/conf.d/* - this is where you put your input|filter|output files. \
-21- Here is an example in case you are working with one configuration file.
-```
-# #################################################################################################################################
-# Sample Logstash configuration for creating a simple
-# Beats -> Logstash -> Elasticsearch pipeline.
 
-input {
-    beats {
-        port => 5044
-    }
-}
-
-output {
-    stdout { codec => rubydebug }
-    elasticsearch {
-        hosts => ["https://192.168.100.2:9200"]
-        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
-        user => "elastic"
-        # SSL enabled
-        ssl => true
-        ssl_certificate_verification => true
-        # Path to your Cluster Certificate .pem downloaded earlier
-        cacert => "/home/user/http_ca.crt"
-        password => "Gbrx2WKwN7A8NFOzuYe+"
-        action => "create"
-    }
-}
-# #################################################################################################################################
-```
 
 22- Note that you should copy the elasticsearch certificate located in /etc/elasticsearch/certs and named http_ca.crt and paste it in a path and give it access permissions, that way your logstash can communicate with your elasticsearch.
 ```
