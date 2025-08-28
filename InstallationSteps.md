@@ -24,14 +24,14 @@ apt-get install apt-transport-https
 ```
 echo "deb https://artifacts.elastic.co/packages/9.x/apt stable main" > /etc/apt/sources.list.d/elastic-9.x.list
 ```
-5-  Update and install elasticsearch. for this tape 
+5-  Update and install elasticsearch. for this type 
 ```
 apt update
 apt install elasticsearch -y
 ```
 6-  Please save the authentification password of your elastic built-in superuser. You will see it at the end of the installation in the terminal
 
-7-  Tape these three commands:
+7-  Type these three commands:
 ```
 systemctl daemon-reload
 systemctl enable elasticsearch.service
@@ -61,7 +61,7 @@ then remove the "two dots" between every two number (ex : AB:CD:7R => ABCD7R) \
 ```
 sudo systemctl start elasticsearch
 ```
-12- Now let's proceed with the installation of Kibana. Tape 
+12- Now let's proceed with the installation of Kibana. Type 
 ```
 apt update
 apt install kibana
@@ -87,13 +87,13 @@ server.publicBaseUrl: "http://your-vm-ip:5601"
 cd /usr/share/kibana/bin
 ./kibana-encryptions-keys generate
 ```
-This will generate something like this, copy it.
+This will generate something like this, copy these 3 lines.
 ```
 xpack.encryptedSavedObjects.encryptionKey: 42498487153da602c24473a44094ed27
 xpack.reporting.encryptionKey: d44cbfd88a48def23f0707fd782d3245
 xpack.security.encryptionKey: 28da2e750a88c60f2116355360edac61
 ```
-Enter your kibana config file by taping the command below then paste the 3 lines the you copied before at the end of /etc/kibana/kibana.yml configuration file, then exit.
+Open your kibana config file by taping the command below then paste the 3 lines that you copied before at the end of /etc/kibana/kibana.yml configuration file, then exit.
 ```
 nano /etc/kibana.kibana.yml
 ```
@@ -103,31 +103,39 @@ systemctl daemon-reload
 systemctl enable kibana.service
 systemctl start kibana.service
 ```
-16- In order to ensure your kibana will join the elk stack, open your browser and tape "http://your-vm:5601" . You'll see a text area
-    inviting your to enter an enrollement token.Open the command line and tape 
+16- In order to ensure your kibana will join the elk stack, open your browser and type "http://your-vm:5601" . You'll see a text area
+    inviting your to enter an enrollement token.Open the command line and type 
 ```
 ./usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
 ```
-You'll see a token, copy it and past it in your the text area of the browser. you will be asked to enter a verification code. \
+You'll see a token, copy it and paste it in your the text area in the browser, click configure then you will be asked to enter a verification code. \
 
-17- Tape in your terminal 
+17- Type in your terminal 
 ```
 ./usr/share/kibana/bin/kibana-verification-code
 ```
-You'll see a six number code, copy it and past it in your browser again.\
+You'll see a six number code, copy it and paste it in your browser again.\
+You will see the authentication page enter elastic as a username then your built-in superuser that you have savec during elasticsearch installation as a password.\
 
-18- Please Note that like elasticsearch, by default your kibana node is only accessible from your localhost, if you want your node to be
-    exposed to all your network, you need to put a non-loopback address by uncommenting and modifying this line 
-```
-"#server.host: "locahost"" in the "/etc/kibana/kibana.yml" file.
-
-```
-17- Your kibana is ready, use the password of the elastic built-in superuser and connect.\
-18- Now let's proceed with the installation of Logstash. Tape
+18- Now let's proceed with the installation of Logstash. Type
 ```
 apt update
 apt install logstash
 ```
+19- You will need to specify the path of your logstash pipelines configuration settings.
+Open a terminal then type:
+```
+nano /etc/logstash/logstash.yml
+```
+You will see a section called "Pipeline Configuration Settings", under it replace this line 
+```
+#path.config : 
+```
+with this 
+```
+path.config: /etc/logstash/conf.d/*.conf
+```
+This will ensure that you logs will be going through every configuration file located in /etc/logstash/conf.d file.\
 19- Start your logstash service
 ```
 systemctl start logstash.service
