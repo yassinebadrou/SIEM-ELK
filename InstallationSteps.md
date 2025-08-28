@@ -41,31 +41,64 @@ systemctl enable elasticsearch.service
 curl http://localhost:9200
 ```
 9-  Note that by default your elasticsearch node is only accessible from your localhost, if you want your node to be exposed to all your network, you need to put a non-loopback address 
-    by uncommenting and modifying two line in "/etc/elasticsearch/elasticsearch.yml" as follows:
+    by uncommenting and modifying two lines in "/etc/elasticsearch/elasticsearch.yml" as follows:
 	Go from This 
 ```
 #network.host: localhost
-"#http.port: 9200"
+#http.port: 9200
 ```
 To this
 ```
 network.host: your-vm-ip
 http.port: 9200
 ```
-10- to genearte the elasticseatch fingerprint go to /etc/elasticsearch/certs/ then type 
+10- In case you will send your logs directly to elasticsearch (if not PLEASE IGNORE THIS STEP), you need to genearte the elasticseatch fingerprint go to /etc/elasticsearch/certs/ then type:
 ```
 openssl x509 -fingerprint -sha256 -in http_ca.crt
 ```
 then remove the "two dots" between every two number (ex : AB:CD:7R => ABCD7R) \
-
-11- Now let's proceed with the installation of Kibana. Tape 
+11- Start you elasticsearch service now:
+```
+sudo systemctl start elasticsearch
+```
+12- Now let's proceed with the installation of Kibana. Tape 
 ```
 apt update
 apt install kibana
 ```
-12- Start kibana service 
+13- As for elasticsearch, your kibana is only discoverable on your localhost, if you wanna expose it to the network, proceed as follow:
 ```
-"systemctl start kibana.service
+nano /etc/kibana/kibana.yml
+```
+Then Uncomment and modify 3 lines in this kibana configuration file. Go from :
+```
+#server.port: 5601
+#server.host: "locahost"
+#server.publicBaseUrl: "http://localhost:5601"
+```
+To this
+```
+server.port: 5601
+server.host: "your-vm-ip"
+server.publicBaseUrl: "http://your-vm-ip:5601"
+```
+14- Now you need to add some Encryption keys in the end of your kibana configuration file.
+```
+cd /usr/share/kibana/bin
+./kibana-encryptions-keys generate
+```
+This will generate something like this 
+```
+xpack.encryptedSavedObjects.encryptionKey: 42498487153da602c24473a44094ed27
+xpack.reporting.encryptionKey: d44cbfd88a48def23f0707fd782d3245
+xpack.security.encryptionKey: 28da2e750a88c60f2116355360edac61
+```
+Copy it and add it to the end of /etc/kibana/kibana.yml configuration file, then exit
+15- Start kibana service 
+```
+systemctl daemon-reload
+systemctl enable kibana.service
+systemctl start kibana.service
 ```
 13- In order to ensure your kibana will join the elk stack, open your browser and tape "http://localhost:5601" . You'll see a text area
     inviting your to enter an enrollement token\
