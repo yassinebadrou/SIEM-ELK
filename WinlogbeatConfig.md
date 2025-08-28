@@ -219,35 +219,79 @@ processors:
 #migration.6_to_7.enabled: true
 
 ```
+6- You will find an OUTPUT SECTION that looks like this
 
-4- Open powershell as an administrator
-5- 
-
-the interface eth0 may be different in each case. \
-
-23- Make sure the important part in winlogbeat.yml or your beat looks like this :
-```
-# #################################################################################################################################
 # ------------------------------ Logstash Output -------------------------------
+```
 output.logstash:
   # The Logstash hosts
-  hosts: ["192.168.100.2:5044"]
+  hosts: ["your-elk-vm:5044"]
+```
+You should fill in your ELK SIEM address ip in that configuration file.\
+7- Open powershell as an administrator.Then type:
+```
+cd 'C:\Program Files\winlogbeat'
+./Powershell.exe -ep bypass
+./install-service-winlogbeat.ps1
+Start-Service winlogbeat
+```
+8- You winlogbeat is working now and sending logs to your logstash.\
+9- Let's proceed with the installation of Sysmon\
+Download winlogbeat via official web site: <a href="https://download.sysinternals.com/files/Sysmon.zip"> Click Here to download </a>\
+10- Rename the Downloaded File to Sysmon\
+11- create a new xml file and name it Sysmon.xml, then fill it wih the content bellow:
+```
+<Sysmon schemaversion="4.90">
+  <EventFiltering>
 
-setup.kibana:
-  host: "http://192.168.100.2:5601"
-  username: "elastic"
-  password: "Gbrx2WKwN7A8NFOzuYe+"
-  pipeline: "winlogbeat-%{[agent.version]}-routing"
-# #################################################################################################################################
-```
+    <!-- Process Events -->
+    <ProcessCreate onmatch="include"/>
+    <ProcessTerminate onmatch="include"/>
 
-this is how you check for elasticsearch indexes
-```
-curl -k -u "elastic:password" -X GET "https://192.168.159.130:9200/_cat/indices?v"
-```
-24- At this stage your need to setup your configuration files for logstash, especialy for filtering.
+    <!-- File Events -->
+    <FileCreate onmatch="include"/>
+    <FileCreateTime onmatch="include"/>
+    <FileDelete onmatch="include"/>
 
-1- to test that your logstash is recieving logs from the beats type 
+    <!-- Registry Events -->
+    <RegistryEvent onmatch="include"/>
+
+    <!-- Network Connections -->
+    <NetworkConnect onmatch="include">
+      <!-- Exclude noisy system processes -->
+      <Image condition="is not">C:\Windows\System32\svchost.exe</Image>
+      <Image condition="is not">C:\Windows\System32\lsass.exe</Image>
+      <Image condition="is not">C:\Windows\System32\services.exe</Image>
+      <Image condition="is not">C:\Windows\System32\wininit.exe</Image>
+    </NetworkConnect>
+
+    <!-- Driver Loads -->
+    <DriverLoad onmatch="include"/>
+
+    <!-- Image Loads -->
+    <ImageLoad onmatch="include">
+      <ImageLoaded condition="is not">C:\Windows\System32\svchost.exe</ImageLoaded>
+    </ImageLoad>
+
+    <!-- WMI, Pipes, Clipboard -->
+    <WmiEvent onmatch="include"/>
+    <PipeEvent onmatch="include"/>
+    <ClipboardChange onmatch="include"/>
+
+    <!-- DNS Queries -->
+    <DnsQuery onmatch="include"/>
+
+  </EventFiltering>
+</Sysmon>
+
 ```
-tcpdump -Xni eth0 port 5044
+12- Save the file, then place it inside the Sysmon folder.\
+13- Move the sysmon folder into 'C:\Program Files\'.\
+14- Open a Powershell as administrator, the type:
 ```
+cd 'C:\Program Files\Sysmon\'
+.\Powershell.exe -ep bypass
+.\Sysmon64.exe -i Sysmon.xml -n -accepteula
+
+```
+15- You have now winlogbeat and sysmon sending logs perfectly to you SIEM.
