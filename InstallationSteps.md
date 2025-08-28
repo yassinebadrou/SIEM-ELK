@@ -209,7 +209,7 @@ Replace your ELK VM ip address as well as your password.\
 systemctl daemon-reload
 systemctl start logstash.service
 ```
-22- One last step to do, Elasticsearch create two shards (primary and replica) for every index for redundancy and high availability, but since we are only using and all-in-one installation, which mean we have elasticsearch, kibana and logstash in the same VM, we will be in NO need to have a replica.\
+22- One last step to do, Elasticsearch create two shards (primary and replica) for every index for redundancy and high availability. But since we are only using an all-in-one installation, which mean we have elasticsearch, kibana and logstash in the same VM, we will NO longer need to have a replica of every shard.\
 To fix this issue, open the browser:
 ```
 http://your-vm-ip:5601
