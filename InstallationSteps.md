@@ -209,3 +209,23 @@ Replace your ELK VM ip address as well as your password.\
 systemctl daemon-reload
 systemctl start logstash.service
 ```
+22- One last step to do, Elasticsearch create two shards (primary and replica) for every index for redundancy and high availability, but since we are only using and all-in-one installation, which mean we have elasticsearch, kibana and logstash in the same VM, we will be in NO need to have a replica.\
+To fix this issue, open the browser:
+```
+http://your-vm-ip:5601
+```
+Then Go to the top left you'll find a 3 small horizontal lines, click on them\
+Scroll down until you see "Management", under it click "Dev Tools"\
+You will see and API terminal, paste the content bellow then run it
+```
+PUT _index_template/winlogbeat-template
+{
+  "index_patterns": ["winlogbeat-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    }
+  }
+}
+```
