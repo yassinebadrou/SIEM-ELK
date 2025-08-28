@@ -1,8 +1,12 @@
+## WELCOME TO THE INSTALLATION PROCESS OF WINLOGBEAT AND SYSMON ##
 
-23- to test that your logstash is recieving logs from the beats type 
-```
-tcpdump -Xni eth0 port 5044
-```
+<h3>OS Windows 7/10/11 </h3>
+
+1- Download winlogbeat via official web site:
+<a href="https://www.elastic.co/fr/downloads/beats/winlogbeat" Click Here to download </a>
+
+
+
 the interface eth0 may be different in each case. \
 
 23- Make sure the important part in winlogbeat.yml or your beat looks like this :
@@ -27,13 +31,7 @@ curl -k -u "elastic:password" -X GET "https://192.168.159.130:9200/_cat/indices?
 ```
 24- At this stage your need to setup your configuration files for logstash, especialy for filtering.
 
-SYSMON Packet:
-open powershell as an administrator then type "Sysmon64.exe -accepteula -i -n"
-
+1- to test that your logstash is recieving logs from the beats type 
 ```
- Credentials:
-    -username : elastic
-    -password : Gbrx2WKwN7A8NFOzuYe+
-	-fingerprint : 0527283E2226E57946667418532187A56DD0F41F9B93C7EC59924B440F515EA8
+tcpdump -Xni eth0 port 5044
 ```
-
