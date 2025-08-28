@@ -230,8 +230,8 @@ You should replace the "your-elk-vm" by your actual ELK SIEM address ip in that 
 7- Open powershell as an administrator.Then type:
 ```
 cd 'C:\Program Files\winlogbeat'
-./Powershell.exe -ep bypass
-./install-service-winlogbeat.ps1
+.\Powershell.exe -ep bypass
+.\install-service-winlogbeat.ps1
 Start-Service winlogbeat
 ```
 8- You winlogbeat is working now and sending logs to your logstash.\
