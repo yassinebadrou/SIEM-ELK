@@ -3,7 +3,7 @@
 <h3>OS Windows 7/10/11 </h3>
 
 1- Download winlogbeat via official web site:\
-<a href="https://www.elastic.co/fr/downloads/beats/winlogbeat"> Click Here to download </a>\
+<a href="https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-9.1.2-windows-x86_64.zip"> Click Here to download </a>\
 2- Rename the file to "winlogbeat"\
 3- Move the winlogbeat file to 'C:\Program Files\'.\
 4- inside the folder you will find a configuration file named "winlogbeat.yml".\
