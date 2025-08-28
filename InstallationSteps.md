@@ -115,7 +115,7 @@ You'll see a token, copy it and paste it in your the text area in the browser, c
 ./usr/share/kibana/bin/kibana-verification-code
 ```
 You'll see a six number code, copy it and paste it in your browser again.\
-You will see the authentication page enter elastic as a username then your built-in superuser that you have savec during elasticsearch installation as a password.\
+You will see the authentication page enter "elastic" as a username then your built-in superuser that you have savec during elasticsearch installation as a password.\
 
 18- Now let's proceed with the installation of Logstash. Type
 ```
@@ -135,9 +135,66 @@ with this
 ```
 path.config: /etc/logstash/conf.d/*.conf
 ```
-This will ensure that you logs will be going through every configuration file located in /etc/logstash/conf.d file.\
+This will ensure that you logs will be going through every configuration file located in "/etc/logstash/conf.d" file.\
+20- Until now, your elasticsearch communication very well with your kibana, but we should ensure that our logstash communication perfectly with our elastic search as this schema is like this \
+AGENT >> LOGSTASH >> ELASTICSEARCH >> KIBANA \
+We will create the configuration files corresponding to the 3 steps of logstash pipeline
+```
+cd /etc/logstash/conf.d/
+touch 001-input.conf
+touch 101-filter.conf
+touch 201-output.conf
+```
+we will fill these 3 files as follow:\
+open your 001-input.conf
+```
+nano 001-input.conf
+```
+Then paste this:
+```
+# #################################################################################################################################
+# Sample Logstash configuration for creating a simple
+# Beats -> Logstash -> Elasticsearch pipeline.
+
+input {
+    beats {
+        port => 5044
+    }
+}
+```
+open your 101-filter.conf
+```
+nano 101-filter.conf
+```
+Then paste this: 
+```
+filter {
+
+}
+```
+Open your 201-output.conf
+```
+nano 201-output.conf
+```
+Then paste this:
+```
+output {
+    stdout { codec => rubydebug }
+    elasticsearch {
+        hosts => ["https://10.10.10.2:9200"]
+        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+        user => "elastic"
+        password => "IWI7c_HAC2K3p7hWglAQ"
+        ssl_enabled => true
+        ssl_verification_mode => full
+        ssl_certificate_authorities => ["/home/elk/http_ca.crt"]
+        action => "index"
+    }
+}
+```
 19- Start your logstash service
 ```
+systemctl daemon-reload
 systemctl start logstash.service
 ```
 20- proceed with the configuration file in /etc/logstash/conf.d/* - this is where you put your input|filter|output files. \
