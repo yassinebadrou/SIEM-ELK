@@ -234,7 +234,7 @@ cd 'C:\Program Files\winlogbeat'
 .\install-service-winlogbeat.ps1
 Start-Service winlogbeat
 ```
-8- You winlogbeat is working now and sending logs to your logstash.\
+8- Your winlogbeat is working now and sending logs to your logstash.\
 9- Let's proceed with the installation of Sysmon\
 Download winlogbeat via official web site: <a href="https://download.sysinternals.com/files/Sysmon.zip"> Click Here to download </a>\
 10- Rename the Downloaded File to Sysmon\
