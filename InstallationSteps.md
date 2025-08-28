@@ -42,14 +42,15 @@ curl http://localhost:9200
 ```
 9-  Note that by default your elasticsearch node is only accessible from your localhost, if you want your node to be exposed to all your network, you need to put a non-loopback address 
     by uncommenting and modifying two line in "/etc/elasticsearch/elasticsearch.yml" as follows:
+	Go from This 
 ```
-"#network.host: localhost"
+#network.host: localhost
 "#http.port: 9200"
 ```
 To this
 ```
-"#network.host: your-vm-ip"
-"#http.port: 9200"
+network.host: your-vm-ip
+http.port: 9200
 ```
 10- to genearte the elasticseatch fingerprint go to /etc/elasticsearch/certs/ then type 
 ```
