@@ -82,40 +82,41 @@ server.port: 5601
 server.host: "your-vm-ip"
 server.publicBaseUrl: "http://your-vm-ip:5601"
 ```
-14- Now you need to add some Encryption keys in the end of your kibana configuration file.
+14- Now you need to add some Encryption keys in the end of your kibana configuration file (/etc/kibana.kibana.yml).
 ```
 cd /usr/share/kibana/bin
 ./kibana-encryptions-keys generate
 ```
-This will generate something like this 
+This will generate something like this, copy it.
 ```
 xpack.encryptedSavedObjects.encryptionKey: 42498487153da602c24473a44094ed27
 xpack.reporting.encryptionKey: d44cbfd88a48def23f0707fd782d3245
 xpack.security.encryptionKey: 28da2e750a88c60f2116355360edac61
 ```
-Copy it and add it to the end of /etc/kibana/kibana.yml configuration file, then exit
-15- Start kibana service 
+Enter your kibana config file by taping the command below then paste the 3 lines the you copied before at the end of /etc/kibana/kibana.yml configuration file, then exit.
+```
+nano /etc/kibana.kibana.yml
+```
+15- Start kibana service now
 ```
 systemctl daemon-reload
 systemctl enable kibana.service
 systemctl start kibana.service
 ```
-13- In order to ensure your kibana will join the elk stack, open your browser and tape "http://localhost:5601" . You'll see a text area
-    inviting your to enter an enrollement token\
-    
-14- Tape 
+16- In order to ensure your kibana will join the elk stack, open your browser and tape "http://your-vm:5601" . You'll see a text area
+    inviting your to enter an enrollement token.Open the command line and tape 
 ```
 ./usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
 ```
-You'll see a token, copy it and past it in your browser. you will be asked to enter a verification code. 
+You'll see a token, copy it and past it in your the text area of the browser. you will be asked to enter a verification code. \
 
-15- Tape in your terminal 
+17- Tape in your terminal 
 ```
 ./usr/share/kibana/bin/kibana-verification-code
 ```
 You'll see a six number code, copy it and past it in your browser again.\
 
-16- Please Note that like elasticsearch, by default your kibana node is only accessible from your localhost, if you want your node to be
+18- Please Note that like elasticsearch, by default your kibana node is only accessible from your localhost, if you want your node to be
     exposed to all your network, you need to put a non-loopback address by uncommenting and modifying this line 
 ```
 "#server.host: "locahost"" in the "/etc/kibana/kibana.yml" file.
