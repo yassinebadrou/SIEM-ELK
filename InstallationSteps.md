@@ -3,8 +3,7 @@
 <h3>OS : ubuntu 20.04</h3>
 <h3>TYPE : ALL-IN-ONE installation</h3>
 
-
-1-  Update your packages b y tapping 
+1-  Update your packages by tapping 
 ```
 apt update
 apt install net-tools
@@ -21,7 +20,7 @@ wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add
 ```
 apt-get install apt-transport-https
 ```
-4-  Add the elasticsearch repository to your apt.source file by tapping:
+4-  Add the elasticsearch repository to your apt.source file by tapping (You will be installing ELK version 9):
 ```
 echo "deb https://artifacts.elastic.co/packages/9.x/apt stable main" > /etc/apt/sources.list.d/elastic-9.x.list
 ```
@@ -30,21 +29,27 @@ echo "deb https://artifacts.elastic.co/packages/9.x/apt stable main" > /etc/apt/
 apt update
 apt install elasticsearch -y
 ```
-6-  Please take note of the authentification password of your elastic built-in superuser. You will see it at the end of the installation 
+6-  Please save the authentification password of your elastic built-in superuser. You will see it at the end of the installation in the terminal
+
 7-  Tape these three commands:
 ```
 systemctl daemon-reload
 systemctl enable elasticsearch.service
-systemctl start elasticsearch.service
 ```
-8-  Test if your elasticsearch is working well by taping 
+8-  Test if your elasticsearch is working well by taping the command below, you will be asked to enter your username(elastic) and your password (superuser password).
 ```
 curl http://localhost:9200
 ```
 9-  Note that by default your elasticsearch node is only accessible from your localhost, if you want your node to be exposed to all your network, you need to put a non-loopback address 
-    by uncommenting and modifying this line 
-```    
-"#network.host: localhost" in the "/etc/elasticsearch/elasticsearch.yml" file.
+    by uncommenting and modifying two line in "/etc/elasticsearch/elasticsearch.yml" as follows:
+```
+"#network.host: localhost"
+"#http.port: 9200"
+```
+To this
+```
+"#network.host: your-vm-ip"
+"#http.port: 9200"
 ```
 10- to genearte the elasticseatch fingerprint go to /etc/elasticsearch/certs/ then type 
 ```
