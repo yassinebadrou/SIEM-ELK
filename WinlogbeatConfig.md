@@ -236,7 +236,7 @@ Start-Service winlogbeat
 ```
 8- Your winlogbeat is working now and sending logs to your logstash.\
 9- Let's proceed with the installation of Sysmon\
-Download winlogbeat via official web site: <a href="https://download.sysinternals.com/files/Sysmon.zip"> Click Here to download </a>\
+Download Ssymon via official web site: <a href="https://download.sysinternals.com/files/Sysmon.zip"> Click Here to download </a>\
 10- Rename the Downloaded File to Sysmon\
 11- create a new xml file and name it Sysmon.xml, then fill it wih the content bellow:
 ```
