@@ -3,13 +3,10 @@
 <h3>OS : ubuntu 20.04</h3>
 <h3>TYPE : ALL-IN-ONE installation</h3>
 
-1-  Update your packages by tapping 
+1-  Update your packages in install some by tapping 
 ```
-apt update
-apt install net-tools
-apt install unzip
-apt install curl
-apt install gnupg
+sudo apt update && sudo apt install -y net-tools unzip curl gnupg
+
 ```
 
 2-  Now inport the PGP Key of elasticsearch repository by tapping 
