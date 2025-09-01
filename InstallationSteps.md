@@ -6,7 +6,6 @@
 1-  Update your packages in install some by tapping 
 ```
 sudo apt update && sudo apt install -y net-tools unzip curl gnupg
-
 ```
 
 2-  Now inport the PGP Key of elasticsearch repository by tapping 
