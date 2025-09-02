@@ -81,7 +81,7 @@ server.publicBaseUrl: "http://your-vm-ip:5601"
 14- Now you need to add some Encryption keys in the end of your kibana configuration file (/etc/kibana.kibana.yml).
 ```
 cd /usr/share/kibana/bin
-./kibana-encryptions-keys generate
+./kibana-encryption-keys generate
 ```
 This will generate something like this, copy these 3 lines.
 ```
