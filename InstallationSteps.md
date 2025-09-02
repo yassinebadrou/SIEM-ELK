@@ -233,50 +233,42 @@ filter {
     mutate { add_tag => ["dropped_dns_query"] }
     drop { }
   }
-# Virus Total check
-#  if [destination][ip] {
-#    ruby {
-#      code => '
-#        require "net/http"
-#        require "uri"
-#        require "json"
+ Virus Total check
+  if [destination][ip] {
+    ruby {
+      code => '
+        require "net/http"
+        require "uri"
+        require "json"
 
-#        begin
-#          ip = event.get("[destination][ip]")
-#          api_key = "95dc7757b5f707020992a9870fc42c2b9de5d0b31db8f53a2aa6403481787957"
-#          uri = URI("https://www.virustotal.com/api/v3/ip_addresses/#{ip}")
-#          request = Net::HTTP::Get.new(uri)
-#          request["x-apikey"] = api_key
+        begin
+          ip = event.get("[destination][ip]")
+          api_key = "enter your account virus total api key"
+          uri = URI("https://www.virustotal.com/api/v3/ip_addresses/#{ip}")
+          request = Net::HTTP::Get.new(uri)
+          request["x-apikey"] = api_key
 
-#          response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-#            http.request(request)
-#          end
+          response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+            http.request(request)
+          end
 
-#          if response.code == "200"
-#            result = JSON.parse(response.body)
-#            malicious_score = result.dig("data", "attributes", "last_analysis_stats", "malicious")
-#            event.set("[vir][tot]", malicious_score)
-#          else
-#            event.set("[vir][tot]", "lookup_failed_#{response.code}")
-#          end
-#        rescue => e
-#          event.set("[vir][tot]", "error_#{e.message}")
-#        end
-#      '
-#    }
-#  }
-
-
-
-
+          if response.code == "200"
+            result = JSON.parse(response.body)
+            malicious_score = result.dig("data", "attributes", "last_analysis_stats", "malicious")
+            event.set("[vir][tot]", malicious_score)
+          else
+            event.set("[vir][tot]", "lookup_failed_#{response.code}")
+          end
+        rescue => e
+          event.set("[vir][tot]", "error_#{e.message}")
+        end
+      '
+    }
+  }
 
 # correlation of LogonType
 
-
-
-
 ######## END OF THE FILTER PART OF THE PIPELINE #############
-
 }
 ```
 Open your 201-output.conf
