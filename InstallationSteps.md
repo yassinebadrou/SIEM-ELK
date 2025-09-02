@@ -176,99 +176,189 @@ Then paste this:
 ```
 filter {
 
-  mutate {
-    convert => { "[winlog][event_data][param1]" => "string" }
+  ##########################################################################
+  # 0) Basic guards
+  ##########################################################################
+  if ![winlog] { drop { } }
+
+  ##########################################################################
+  # 1) Ensure event.code exists (Sysmon/Windows) and is an integer
+  ##########################################################################
+  if [winlog][event_id] {
+    mutate {
+      copy    => { "[winlog][event_id]" => "[event][code]" }
+      convert => { "[event][code]" => "integer" }
+    }
   }
-  # Rename fields to ECS-compatible names — safely check existence
+
+  # Also normalize winlog version/opcode if present
+  mutate {
+    convert => {
+      "[winlog][version]" => "integer"
+      "[winlog][opcode]"  => "integer"
+    }
+  }
+
+  ##########################################################################
+  # 2) ECS host / user / process basics (non-destructive copies)
+  ##########################################################################
+  if [winlog][computer_name] and ![host][hostname] {
+    mutate { add_field => { "[host][hostname]" => "%{[winlog][computer_name]}" } }
+  }
+
+  if [winlog][user][name] and ![user][name] {
+    mutate { add_field => { "[user][name]" => "%{[winlog][user][name]}" } }
+  }
+
+  # Sysmon often provides ProcessId / ParentProcessId under event_data
+  if [winlog][event_data][ProcessId] {
+    mutate {
+      add_field => { "[process][pid]" => "%{[winlog][event_data][ProcessId]}" }
+      convert   => { "[process][pid]" => "integer" }
+    }
+  }
+  if [winlog][event_data][ParentProcessId] {
+    mutate {
+      add_field => { "[process][parent][pid]" => "%{[winlog][event_data][ParentProcessId]}" }
+      convert   => { "[process][parent][pid]" => "integer" }
+    }
+  }
+
+  # Executable / CommandLine
+  if [winlog][event_data][Image] and ![process][executable] {
+    mutate { add_field => { "[process][executable]" => "%{[winlog][event_data][Image]}" } }
+  }
+  if [winlog][event_data][CommandLine] and ![process][command_line] {
+    mutate { add_field => { "[process][command_line]" => "%{[winlog][event_data][CommandLine]}" } }
+  }
+
+  ##########################################################################
+  # 3) Network ECS mappings + type fixes
+  ##########################################################################
+  # Copy/rename common Sysmon/Windows fields
   if [winlog][event_data] {
     mutate {
       rename => {
-        "[winlog][event_data][SourceIp]"        => "[source][ip]"
-        "[winlog][event_data][DestinationIp]"   => "[destination][ip]"
-        "[winlog][event_data][DestinationPort]" => "[destination][port]"
-        "[winlog][event_data][Image]"           => "[Image]"
-        "[winlog][event_data][QueryName]"       => "[query][name]"
-        "[winlog][event_data][DestinationPortName]"       => "[service]"
-        "[winlog][event_data][LogonType]"       => "[logon][type]"
+        "[winlog][event_data][SourceIp]"              => "[source][ip]"
+        "[winlog][event_data][DestinationIp]"         => "[destination][ip]"
+        "[winlog][event_data][SourcePort]"            => "[source][port]"
+        "[winlog][event_data][DestinationPort]"       => "[destination][port]"
+        "[winlog][event_data][Protocol]"              => "[network][transport]"
+        "[winlog][event_data][DestinationPortName]"   => "[service][name]"
+        "[winlog][event_data][QueryName]"             => "[dns][question][name]"
+        "[winlog][event_data][QueryResults]"          => "[dns][answers]"
+        "[winlog][event_data][LogonType]"             => "[winlog][logon_type]"
+      }
+    }
+
+    mutate {
+      convert => {
+        "[source][port]"         => "integer"
+        "[destination][port]"    => "integer"
+        "[winlog][logon_type]"   => "integer"
+      }
+    }
+
+    # Bytes/length if present
+    mutate {
+      convert => {
+        "[network][bytes]"       => "integer"
+        "[source][bytes]"        => "integer"
+        "[destination][bytes]"   => "integer"
       }
     }
   }
 
-  if [winlog][user] and [winlog][user][name] {
-    mutate {
-      rename => { "[winlog][user][name]" => "[username]" }
-    }
-  }
-  # Reverse DNS lookup — non-blocking and timeout-safe
+  ##########################################################################
+  # 4) DNS enrichment (reverse lookup) with safe cache + fallback
+  ##########################################################################
   if [destination][ip] {
+    # Seed domain with IP before reverse lookup (dns filter replaces it)
     mutate {
-      add_field => {
-        "[destination][domain]" => "%{[destination][ip]}"
-      }
+      add_field => { "[destination][domain]" => "%{[destination][ip]}" }
     }
 
     dns {
-      reverse => [ "[destination][domain]" ]
-      action => "replace"
-      nameserver => [ "8.8.8.8", "1.1.1.1" ]
-      timeout => 5
-      hit_cache_size => 5000
-      hit_cache_ttl => 900
-      failed_cache_size => 1000
+      reverse          => [ "[destination][domain]" ]
+      action           => "replace"
+      nameserver       => [ "8.8.8.8", "1.1.1.1" ]
+      timeout          => 5
+      hit_cache_size   => 5000
+      hit_cache_ttl    => 900
+      failed_cache_size=> 1000
       failed_cache_ttl => 300
     }
   }
 
-  # Use QueryName from DNS Event ID 22 to replace domain if reverse DNS is too generic
-  if [winlog][event_id] == 22 and [query][name] and [destination][domain] {
+  # If event is DNS (Microsoft-Windows-DNS-Client/Operational, ID 22), prefer QueryName
+  if [event][code] == 22 and [dns][question][name] and [destination][domain] {
     if [destination][domain] =~ /\.(in-addr|ip6|googleusercontent|cloudapp|amazonaws)\.com$/ {
-      mutate {
-        replace => { "[destination][domain]" => "%{[query][name]}" }
-      }
+      mutate { replace => { "[destination][domain]" => "%{[dns][question][name]}" } }
     }
   }
 
-  # Drop events from known irrelevant IPs — tagged before drop
+  ##########################################################################
+  # 5) Reasonable drops (your original behavior preserved)
+  ##########################################################################
   if [destination][ip] in ["8.8.8.8", "1.1.1.1"] {
     mutate { add_tag => ["dropped_dns_query"] }
     drop { }
   }
- Virus Total check
-  if [destination][ip] {
+
+  ##########################################################################
+  # 6) Extra Sysmon niceties: timestamps & booleans
+  ##########################################################################
+  # UtcTime -> event.created (leave @timestamp from winlogbeat)
+  if [winlog][event_data][UtcTime] {
+    date {
+      match  => [ "[winlog][event_data][UtcTime]", "ISO8601", "yyyy-MM-dd HH:mm:ss.SSSZ", "yyyy-MM-dd HH:mm:ssZ" ]
+      target => "[event][created]"
+    }
+  }
+
+  # Common boolean-ish strings that show up in Sysmon (normalize)
+  mutate {
+    gsub => [
+      # Trim spaces that sometimes creep in
+      "[dns][question][name]", "^\s+|\s+$", ""
+    ]
+  }
+
+  # Example: if event_data has "Allowed", "Yes", "No" etc. (add any you use)
+  if [winlog][event_data][Allowed] {
+    mutate { lowercase => [ "[winlog][event_data][Allowed]" ] }
     ruby {
       code => '
-        require "net/http"
-        require "uri"
-        require "json"
-
-        begin
-          ip = event.get("[destination][ip]")
-          api_key = "enter your account virus total api key"
-          uri = URI("https://www.virustotal.com/api/v3/ip_addresses/#{ip}")
-          request = Net::HTTP::Get.new(uri)
-          request["x-apikey"] = api_key
-
-          response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-            http.request(request)
-          end
-
-          if response.code == "200"
-            result = JSON.parse(response.body)
-            malicious_score = result.dig("data", "attributes", "last_analysis_stats", "malicious")
-            event.set("[vir][tot]", malicious_score)
-          else
-            event.set("[vir][tot]", "lookup_failed_#{response.code}")
-          end
-        rescue => e
-          event.set("[vir][tot]", "error_#{e.message}")
+        val = event.get("[winlog][event_data][Allowed]")
+        if ["true","yes","1"].include?(val)
+          event.set("[rule][allowed]", true)
+        elsif ["false","no","0"].include?(val)
+          event.set("[rule][allowed]", false)
         end
       '
     }
   }
 
-# correlation of LogonType
+  ##########################################################################
+  # 7) Housekeeping: remove stray custom fields you no longer want
+  ##########################################################################
+  mutate {
+    remove_field => [ "[Image]" ]  # superseded by [process][executable]
+  }
 
-######## END OF THE FILTER PART OF THE PIPELINE #############
+  ##########################################################################
+  # 8) (Optional) Tag event.category/type from channel/provider
+  ##########################################################################
+  if [winlog][channel] and ![event][category] {
+    # crude mapping; refine if you like
+    if [winlog][channel] =~ /Security/ {
+      mutate { add_field => { "[event][category]" => "authentication" } }
+    } else if [winlog][channel] =~ /Sysmon/ {
+      mutate { add_field => { "[event][category]" => "process" } }
+    } else if [winlog][channel] =~ /DNS/ {
+      mutate { add_field => { "[event][category]" => "network" } }
+    }
+  }
 }
 ```
 Open your 201-output.conf
