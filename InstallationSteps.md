@@ -400,10 +400,121 @@ You will see and API terminal, paste the content bellow then run it
 PUT _index_template/winlogbeat-template
 {
   "index_patterns": ["winlogbeat-*"],
+  "priority": 200,                     // win over any default beat templates
   "template": {
     "settings": {
       "number_of_shards": 1,
       "number_of_replicas": 0
+    },
+    "mappings": {
+      // If you use ECS generally, this keeps unknown stuff flexible
+      "dynamic": true,
+
+      // Coerce common numeric-looking strings to numbers
+      "dynamic_templates": [
+        {
+          "ports_as_int": {
+            "match": "port",
+            "match_mapping_type": "string",
+            "mapping": { "type": "integer", "ignore_malformed": true }
+          }
+        },
+        {
+          "pids_as_int": {
+            "match": "pid",
+            "match_mapping_type": "string",
+            "mapping": { "type": "integer", "ignore_malformed": true }
+          }
+        },
+        {
+          "codes_as_int": {
+            "path_match": "event.code",
+            "match_mapping_type": "string",
+            "mapping": { "type": "integer", "ignore_malformed": true }
+          }
+        }
+      ],
+
+      "properties": {
+        "@timestamp": { "type": "date" },
+
+        "event": {
+          "properties": {
+            "code":    { "type": "integer" },
+            "created": { "type": "date" }
+          }
+        },
+
+        "source": {
+          "properties": {
+            "ip":     { "type": "ip" },
+            "port":   { "type": "integer" },
+            "bytes":  { "type": "long" },
+            "domain": { "type": "keyword" }
+          }
+        },
+
+        "destination": {
+          "properties": {
+            "ip":      { "type": "ip" },
+            "port":    { "type": "integer" },
+            "bytes":   { "type": "long" },
+            "domain":  { "type": "keyword" },
+            "mac":     { "type": "keyword" },
+            "packets": { "type": "long" }
+          }
+        },
+
+        "dns": {
+          "properties": {
+            "question": {
+              "properties": {
+                "name": { "type": "keyword" }
+              }
+            },
+            "answers": { "type": "keyword" }
+          }
+        },
+
+        "process": {
+          "properties": {
+            "pid": { "type": "integer" },
+            "parent": {
+              "properties": {
+                "pid": { "type": "integer" }
+              }
+            },
+            "executable":   { "type": "keyword" },
+            "command_line": { "type": "wildcard" }
+          }
+        },
+
+        "host": {
+          "properties": {
+            "hostname": { "type": "keyword" }
+          }
+        },
+
+        "winlog": {
+          "properties": {
+            "event_id": { "type": "integer" },   // still keep raw winlog ID typed
+            "version":  { "type": "integer" },
+            "opcode":   { "type": "integer" },
+            "channel":  { "type": "keyword" },
+            "computer_name": { "type": "keyword" },
+            "user": {
+              "properties": {
+                "name": { "type": "keyword" }
+              }
+            },
+            "event_data": {
+              "properties": {
+                "UtcTime": { "type": "date", "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss.SSSZ||yyyy-MM-dd HH:mm:ssZ" }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
