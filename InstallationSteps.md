@@ -176,6 +176,107 @@ Then paste this:
 ```
 filter {
 
+  mutate {
+    convert => { "[winlog][event_data][param1]" => "string" }
+  }
+  # Rename fields to ECS-compatible names — safely check existence
+  if [winlog][event_data] {
+    mutate {
+      rename => {
+        "[winlog][event_data][SourceIp]"        => "[source][ip]"
+        "[winlog][event_data][DestinationIp]"   => "[destination][ip]"
+        "[winlog][event_data][DestinationPort]" => "[destination][port]"
+        "[winlog][event_data][Image]"           => "[Image]"
+        "[winlog][event_data][QueryName]"       => "[query][name]"
+        "[winlog][event_data][DestinationPortName]"       => "[service]"
+        "[winlog][event_data][LogonType]"       => "[logon][type]"
+      }
+    }
+  }
+
+  if [winlog][user] and [winlog][user][name] {
+    mutate {
+      rename => { "[winlog][user][name]" => "[username]" }
+    }
+  }
+  # Reverse DNS lookup — non-blocking and timeout-safe
+  if [destination][ip] {
+    mutate {
+      add_field => {
+        "[destination][domain]" => "%{[destination][ip]}"
+      }
+    }
+
+    dns {
+      reverse => [ "[destination][domain]" ]
+      action => "replace"
+      nameserver => [ "8.8.8.8", "1.1.1.1" ]
+      timeout => 5
+      hit_cache_size => 5000
+      hit_cache_ttl => 900
+      failed_cache_size => 1000
+      failed_cache_ttl => 300
+    }
+  }
+
+  # Use QueryName from DNS Event ID 22 to replace domain if reverse DNS is too generic
+  if [winlog][event_id] == 22 and [query][name] and [destination][domain] {
+    if [destination][domain] =~ /\.(in-addr|ip6|googleusercontent|cloudapp|amazonaws)\.com$/ {
+      mutate {
+        replace => { "[destination][domain]" => "%{[query][name]}" }
+      }
+    }
+  }
+
+  # Drop events from known irrelevant IPs — tagged before drop
+  if [destination][ip] in ["8.8.8.8", "1.1.1.1"] {
+    mutate { add_tag => ["dropped_dns_query"] }
+    drop { }
+  }
+# Virus Total check
+#  if [destination][ip] {
+#    ruby {
+#      code => '
+#        require "net/http"
+#        require "uri"
+#        require "json"
+
+#        begin
+#          ip = event.get("[destination][ip]")
+#          api_key = "95dc7757b5f707020992a9870fc42c2b9de5d0b31db8f53a2aa6403481787957"
+#          uri = URI("https://www.virustotal.com/api/v3/ip_addresses/#{ip}")
+#          request = Net::HTTP::Get.new(uri)
+#          request["x-apikey"] = api_key
+
+#          response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+#            http.request(request)
+#          end
+
+#          if response.code == "200"
+#            result = JSON.parse(response.body)
+#            malicious_score = result.dig("data", "attributes", "last_analysis_stats", "malicious")
+#            event.set("[vir][tot]", malicious_score)
+#          else
+#            event.set("[vir][tot]", "lookup_failed_#{response.code}")
+#          end
+#        rescue => e
+#          event.set("[vir][tot]", "error_#{e.message}")
+#        end
+#      '
+#    }
+#  }
+
+
+
+
+
+# correlation of LogonType
+
+
+
+
+######## END OF THE FILTER PART OF THE PIPELINE #############
+
 }
 ```
 Open your 201-output.conf
